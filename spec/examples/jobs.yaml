@@ -1,0 +1,52 @@
+# Fictional example: a gym day-pass booking app.
+version: "0.1"
+app:
+  name: PassDemo
+  description: Book a one-day pass at a nearby gym.
+
+jobs:
+  - id: book_day_pass
+    description: Find a gym and pay for a day pass
+    start: { event: search_started }
+    success: { event: pass_purchased }
+    within: 10m
+    targets: { completion_rate: 0.35, p50_seconds: 180 }
+    critical: true
+  - id: find_gym_nearby
+    description: See gyms near the user's location with prices
+    start: { event: $pageview, where: { path: "/" } }
+    success: { event: gym_detail_viewed }
+    within: session
+    targets: { completion_rate: 0.6 }
+  - id: cancel_pass
+    description: Cancel an unused pass and get a refund
+    start: { event: pass_cancel_started }
+    success: { event: pass_cancelled }
+    within: 5m
+    critical: true
+
+guardrails:
+  - id: checkout_errors
+    metric: errors_per_1k_sessions{path="/checkout"}
+    max_regression: 10%
+    window: 24h
+  - id: refund_rate
+    metric: refunds / purchases
+    max_regression: 5%
+    window: 7d
+
+invariants:
+  - id: pricing
+    description: Prices and fees are set by the business, never by a loop
+    paths: ["src/pricing/**", "config/fees.*"]
+  - id: legal_copy
+    description: Terms, privacy notice and refund policy text
+    paths: ["src/legal/**"]
+  - id: accessibility_minimums
+    description: Contrast, focus order and label rules in the design system
+    paths: ["src/design-system/a11y/**"]
+
+adaptation_slots:
+  - id: home_shortcuts
+    components: [RecentGymCard, QuickRebookButton, NearbyMap]
+    apply_at: session_start

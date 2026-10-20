@@ -1,0 +1,44 @@
+# Fictional example entry.
+id: L-2026-10-20-001
+created: 2026-10-20
+author:
+  kind: agent
+  name: mutator
+  models: [claude-opus-5-5]
+loop: L2
+change_class: bugfix-frontend
+autonomy_level: A1
+state: measured
+job: book_day_pass
+hypothesis: >-
+  Users on small Android screens rage-click the Pay button because the cookie banner
+  covers it. Moving the banner above the sticky footer will raise checkout completion.
+evidence:
+  - source: posthog.replay
+    ref: replay-cluster-checkout-rageclick
+    summary: 41 sessions with 3 or more clicks on Pay in 10 seconds, all under 400px wide
+  - source: posthog.error_tracking
+    ref: none
+    summary: No JS errors in these sessions, which points to a layout issue
+predicted:
+  metric: book_day_pass.completion_rate
+  change: "+4%"
+  window_days: 7
+verification:
+  unit_tests: pass
+  replay_pass_rate: 1.0
+  synthetic_job_delta: 0.05
+  invariant_violations: 0
+shipped:
+  date: 2026-10-21
+  pr: "#123"
+  flag: fix-cookie-banner-overlap
+measured:
+  metric: book_day_pass.completion_rate
+  change: "+3%"
+  window_days: 7
+  confidence: directional, low traffic
+cost:
+  tokens: 180000
+  human_minutes: 12
+notes: Prediction slightly high. Human reviewer edited one CSS value.

@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/5hirish/ultrastable/spec/ledger.schema.json",
+  "title": "Ultrastable ledger entry",
+  "description": "One change, human or agent made: why, what was predicted, what happened.",
+  "type": "object",
+  "required": ["id", "created", "author", "loop", "change_class", "state", "job", "hypothesis", "evidence", "predicted"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "pattern": "^L-[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{3}$" },
+    "created": { "type": "string", "format": "date" },
+    "author": {
+      "type": "object",
+      "required": ["kind"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "enum": ["human", "agent"] },
+        "name": { "type": "string" },
+        "models": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "loop": { "enum": ["L1", "L2", "L3"] },
+    "change_class": { "type": "string" },
+    "autonomy_level": { "enum": ["A0", "A1", "A2", "A3"] },
+    "state": { "enum": ["hypothesis", "candidate", "verified", "rejected", "shipped", "measured", "rolled_back"] },
+    "job": { "type": "string" },
+    "hypothesis": { "type": "string", "minLength": 20 },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["source", "ref"],
+        "additionalProperties": false,
+        "properties": {
+          "source": { "type": "string" },
+          "ref": { "type": "string" },
+          "summary": { "type": "string" }
+        }
+      }
+    },
+    "predicted": { "$ref": "#/$defs/impact" },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "unit_tests": { "enum": ["pass", "fail", "n/a"] },
+        "replay_pass_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "synthetic_job_delta": { "type": "number" },
+        "invariant_violations": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "shipped": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "date": { "type": "string", "format": "date" },
+        "pr": { "type": "string" },
+        "flag": { "type": "string" }
+      }
+    },
+    "measured": { "$ref": "#/$defs/impact" },
+    "cost": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tokens": { "type": "integer", "minimum": 0 },
+        "usd": { "type": "number", "minimum": 0 },
+        "human_minutes": { "type": "number", "minimum": 0 }
+      }
+    },
+    "notes": { "type": "string" }
+  },
+  "$defs": {
+    "impact": {
+      "type": "object",
+      "required": ["metric", "change"],
+      "additionalProperties": false,
+      "properties": {
+        "metric": { "type": "string" },
+        "change": { "type": "string", "description": "Relative change, e.g. '+5%' or '-12%'" },
+        "window_days": { "type": "integer", "minimum": 1 },
+        "confidence": { "type": "string" }
+      }
+    }
+  }
+}

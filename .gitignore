@@ -1,0 +1,16 @@
+# Raw signal exports never go into git (scrub first)
+**/raw/
+*.har
+replays-export/
+events-export/
+
+# Secrets
+.env
+*.key
+
+# Python
+__pycache__/
+.venv/
+
+# Node
+node_modules/

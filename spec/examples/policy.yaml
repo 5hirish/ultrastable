@@ -1,0 +1,21 @@
+# Default v0.1 policy. Mirrors docs/autonomy.md.
+version: "0.1"
+promotion:
+  clean_changes_required: 20
+  demote_to_on_incident: A1
+
+classes:
+  copy:                   { level: A1, cap: A3 }
+  layout-adapt:           { level: A1, cap: A2, canary_percent: 5 }
+  bugfix-frontend:        { level: A1, cap: A3, canary_percent: 10 }
+  bugfix-backend:         { level: A1, cap: A2, canary_percent: 5 }
+  performance:            { level: A1, cap: A2, canary_percent: 5 }
+  dependency-security:    { level: A1, cap: A2 }
+  feature:                { level: A0, cap: A1 }
+  schema:                 { level: A0, cap: A1 }
+  infra:                  { level: A0, cap: A1 }
+  auth-payments-deletion:
+    level: A0
+    cap: A1
+    paths: ["src/auth/**", "src/payments/**", "src/account/delete/**"]
+    notes: Never above A1 in v0.1, see CHARTER section 4

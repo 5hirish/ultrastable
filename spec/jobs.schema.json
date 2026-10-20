@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/5hirish/ultrastable/spec/jobs.schema.json",
+  "title": "Ultrastable jobs manifest",
+  "description": "Declares what an app is for: its jobs, how success is measured, the guardrails that trigger rollback, and invariants no loop may change.",
+  "type": "object",
+  "required": ["version", "app", "jobs", "guardrails", "invariants"],
+  "additionalProperties": false,
+  "properties": {
+    "version": { "const": "0.1" },
+    "app": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "url": { "type": "string" },
+        "description": { "type": "string" }
+      }
+    },
+    "jobs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "description", "start", "success"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+          "description": { "type": "string" },
+          "segments": { "type": "array", "items": { "type": "string" } },
+          "start": { "$ref": "#/$defs/eventMatch" },
+          "success": { "$ref": "#/$defs/eventMatch" },
+          "within": { "type": "string", "description": "Max time from start to success, e.g. '10m' or 'session'" },
+          "targets": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "completion_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+              "p50_seconds": { "type": "number", "minimum": 0 }
+            }
+          },
+          "critical": { "type": "boolean", "default": false }
+        }
+      }
+    },
+    "guardrails": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "metric", "max_regression"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "metric": { "type": "string" },
+          "max_regression": { "type": "string", "pattern": "^[0-9.]+%$" },
+          "window": { "type": "string" }
+        }
+      }
+    },
+    "invariants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "description", "paths"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "description": { "type": "string" },
+          "paths": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+        }
+      }
+    },
+    "adaptation_slots": {
+      "type": "array",
+      "description": "UI regions where L1 adaptation is allowed, using components from the catalog.",
+      "items": {
+        "type": "object",
+        "required": ["id", "components"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "components": { "type": "array", "items": { "type": "string" } },
+          "apply_at": { "enum": ["session_start"] }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "eventMatch": {
+      "type": "object",
+      "required": ["event"],
+      "additionalProperties": false,
+      "properties": {
+        "event": { "type": "string" },
+        "where": { "type": "object" }
+      }
+    }
+  }
+}
